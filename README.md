@@ -21,8 +21,9 @@ docker build -t invisibot:latest .
 ```bash
 docker run -it --rm \
 	--name invisibot_c \
+	-v ./robots.json:/invisibot_ws/robots.json \
 	-p 8080:8080 \
-invisibot:latest bash -c "python3 -m invisibot --robot_name bot1 --map L2"
+invisibot:latest bash -c "python3 -m invisibot"
 ```
 
 # **Verify** ✅
