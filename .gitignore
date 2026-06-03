@@ -2,13 +2,13 @@
 *.pyc
 *.o
 *.log
+*.backup
 
 # Directories
 .vscode/*
 env/*
 dist/*
 build/*
-scripts/*
 virtualenv/*
 __pycache__/*
 
