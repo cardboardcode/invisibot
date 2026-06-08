@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker build -t --progress=plain invisibot:latest . $1
+docker build --progress=plain -t invisibot:latest . $1
