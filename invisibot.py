@@ -11,6 +11,7 @@ import uvicorn
 from fastapi import FastAPI
 from utils.differential_drive import Invisibot
 from utils.messages import Location, Request, Response
+from utils.registry import FleetRegistry
 
 STANDALONE = False
 app = FastAPI()
@@ -31,6 +32,7 @@ class ApiServer:
 
     def __init__(self, port, robots_data) -> None:
         self.ib_fleet = []
+        self.registry = FleetRegistry()
         for robot_name in robots_data:
 
             x = robots_data[robot_name]["pose"]["x"]
@@ -38,7 +40,14 @@ class ApiServer:
             yaw = robots_data[robot_name]["pose"]["yaw"]
             floor = robots_data[robot_name]["map_name"]
             
-            robot = Invisibot(robot_name,x,y,yaw,floor)
+            robot = Invisibot(
+                self.registry,
+                robot_name,
+                x,
+                y,
+                yaw,
+                floor,
+                )
 
             self.ib_fleet.append(robot)
 
@@ -108,6 +117,26 @@ class ApiServer:
             data["destination_arrival"] = None
             data["curr_path_size"] = selected_ib.current_path_segment
             data["last_completed_request"] = selected_ib.current_command_id
+
+            response["data"] = data
+            response["success"] = True
+            response["msg"] = "Beep Boop Beep"
+
+            return response
+
+        @app.get("/all_pose", response_model=Response)
+        async def all_pose():
+            response = {}
+            data = {}
+
+            ROBOTS_POSE_DATA = self.registry.get_all_poses()
+
+            for name, pos in ROBOTS_POSE_DATA.items():
+                data[name] = {
+                    "x": pos[0],
+                    "y": pos[1],
+                    "yaw": pos[2]
+                }
 
             response["data"] = data
             response["success"] = True

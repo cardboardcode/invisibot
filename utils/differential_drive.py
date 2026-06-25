@@ -14,7 +14,13 @@ class Invisibot:
     """
 
     def __init__(
-        self, name: str, x: float = 0.0, y: float = 0.0, yaw: float = 0.0, floor: str = "L1"
+        self,
+        fleet_registry,
+        name: str,
+        x: float = 0.0,
+        y: float = 0.0,
+        yaw: float = 0.0,
+        floor: str = "L1",
     ):
         """
         Initializes the Invisibot with its starting position and other parameters.
@@ -30,6 +36,7 @@ class Invisibot:
         self.current_y = y
         self.current_yaw = yaw
         self.floor = floor
+        self.fleet_registry = fleet_registry
 
         self.target_x = x  # Initialize with current position
         self.target_y = y  # Initialize with current position
@@ -62,6 +69,14 @@ class Invisibot:
             daemon=True,
         )
         self.movement_thread.start()
+
+        # Sync the global registry with this new position
+        self.fleet_registry.update_pose(
+            self.name,
+            self.current_x,
+            self.current_y,
+            self.current_yaw
+        )
 
     def _calculate_velocities(self) -> None:
         """
@@ -136,11 +151,25 @@ class Invisibot:
                     # Snap to target to ensure exact arrival
                     self.current_x = self.target_x
                     self.current_y = self.target_y
+                    self.fleet_registry.update_pose(
+                        self.name,
+                        self.current_x,
+                        self.current_y,
+                        self.current_yaw
+                        )
                     break  # Reached the target point
 
                 # Update position based on elapsed time and calculated velocities
                 self.current_x = original_x + time_elapsed_since_start * self.velocity_x
                 self.current_y = original_y + time_elapsed_since_start * self.velocity_y
+
+                # Sync the global registry with this new position
+                self.fleet_registry.update_pose(
+                    self.name,
+                    self.current_x,
+                    self.current_y,
+                    self.current_yaw
+                )
 
                 print(
                     f"Robot [ {self.name} ] Position @ X: {self.current_x:.3f} Y: {self.current_y:.3f} | "
