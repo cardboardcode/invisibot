@@ -113,7 +113,7 @@ class ApiServer:
                 "yaw": selected_ib.current_yaw,
             }
             data["battery"] = 100.0
-            data["completed_request"] = not selected_ib.is_moving
+            data["completed_request"] = not selected_ib.has_failed if selected_ib.has_failed else not selected_ib.is_moving
             data["destination_arrival"] = None
             data["curr_path_size"] = selected_ib.current_path_segment
             data["last_completed_request"] = selected_ib.current_command_id

@@ -58,6 +58,7 @@ class Invisibot:
 
         self._is_stopped = False  # Flag to pause/resume robot movement
         self.is_moving = False  # Flag indicating if the robot is actively moving
+        self.has_failed = False # Flag indicating that robot has been stopped due to collision risk
 
         self.last_ignored_target = (
             None  # Stores the last target that was ignored due to being a duplicate
@@ -164,6 +165,7 @@ class Invisibot:
                 future_x = original_x + time_elapsed_since_start * self.velocity_x * 1.5
                 future_y = original_y + time_elapsed_since_start * self.velocity_y * 1.5
                 safety_radius = 0.5
+                is_collision_imminent = False
                 all_poses = self.fleet_registry.get_all_poses()
                 for robot_name, pose in all_poses.items():
                     if robot_name == self.name:
@@ -171,8 +173,9 @@ class Invisibot:
                     else:
                         dist = math.sqrt((pose[0] - future_x)**2 + (pose[1] - future_y)**2)
                         if dist < safety_radius:
-                            self._is_stopped = True
                             print(f"!!! COLLISION WARNING: {robot_name} is within safety radius! !!!")
+                            is_collision_imminent = True
+                            self.has_failed = True
                             break
 
                 # Update position based on elapsed time and calculated velocities
@@ -196,8 +199,11 @@ class Invisibot:
                 time.sleep(0.1)
 
                 # Handle stopping functionality
-                if self._is_stopped:
+                while self._is_stopped:
                     print("#### ROBOT STOPPED ####")
+                    time.sleep(5)
+                
+                if is_collision_imminent:
                     break
 
             print(f"Time elapsed for segment: {time_elapsed_since_start:.2f} seconds")
@@ -232,6 +238,7 @@ class Invisibot:
 
             self.current_path_segment = copy.copy(target_request.destination)
             self.is_moving = True
+            self.has_failed = False
 
             for point in self.current_path_segment:
                 self._move_to_point(point.x, point.y, point.yaw)
