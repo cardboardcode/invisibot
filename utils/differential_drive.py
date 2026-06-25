@@ -159,6 +159,22 @@ class Invisibot:
                         )
                     break  # Reached the target point
 
+                # Anticipate if other robots are within safety radius
+                # If true, stop the navigation task.
+                future_x = original_x + time_elapsed_since_start * self.velocity_x * 1.5
+                future_y = original_y + time_elapsed_since_start * self.velocity_y * 1.5
+                safety_radius = 0.5
+                all_poses = self.fleet_registry.get_all_poses()
+                for robot_name, pose in all_poses.items():
+                    if robot_name == self.name:
+                        continue
+                    else:
+                        dist = math.sqrt((pose[0] - future_x)**2 + (pose[1] - future_y)**2)
+                        if dist < safety_radius:
+                            self._is_stopped = True
+                            print(f"!!! COLLISION WARNING: {robot_name} is within safety radius! !!!")
+                            break
+
                 # Update position based on elapsed time and calculated velocities
                 self.current_x = original_x + time_elapsed_since_start * self.velocity_x
                 self.current_y = original_y + time_elapsed_since_start * self.velocity_y
@@ -180,9 +196,9 @@ class Invisibot:
                 time.sleep(0.1)
 
                 # Handle stopping functionality
-                while self._is_stopped:
+                if self._is_stopped:
                     print("#### ROBOT STOPPED ####")
-                    time.sleep(1)  # Wait while stopped
+                    break
 
             print(f"Time elapsed for segment: {time_elapsed_since_start:.2f} seconds")
 
