@@ -146,9 +146,11 @@ class Invisibot:
             start_movement_time = time.time()
 
             while True:
+                
                 time_elapsed_since_start = time.time() - start_movement_time
 
                 if time_elapsed_since_start >= total_travel_time:
+                    print(f"[INFO] time_elapsed_since_start >= total_travel_time", flush=True)
                     # Snap to target to ensure exact arrival
                     self.current_x = self.target_x
                     self.current_y = self.target_y
@@ -162,8 +164,8 @@ class Invisibot:
 
                 # Anticipate if other robots are within safety radius
                 # If true, stop the navigation task.
-                future_x = original_x + time_elapsed_since_start * self.velocity_x * 1.5
-                future_y = original_y + time_elapsed_since_start * self.velocity_y * 1.5
+                future_x = original_x + time_elapsed_since_start * self.velocity_x * 1.25
+                future_y = original_y + time_elapsed_since_start * self.velocity_y * 1.25
                 safety_radius = 0.5
                 is_collision_imminent = False
                 all_poses = self.fleet_registry.get_all_poses()
@@ -173,7 +175,7 @@ class Invisibot:
                     else:
                         dist = math.sqrt((pose[0] - future_x)**2 + (pose[1] - future_y)**2)
                         if dist < safety_radius:
-                            print(f"!!! COLLISION WARNING: {robot_name} is within safety radius! !!!")
+                            print(f"!!! COLLISION WARNING: {robot_name} is within safety radius! !!!", flush=True)
                             is_collision_imminent = True
                             self.has_failed = True
                             break
@@ -192,7 +194,7 @@ class Invisibot:
 
                 print(
                     f"Robot [ {self.name} ] Position @ X: {self.current_x:.3f} Y: {self.current_y:.3f} | "
-                    f"Paths Remaining: {len(self.current_path_segment)}"
+                    f"Paths Remaining: {len(self.current_path_segment)}", flush=True
                 )
 
                 # Simulate discrete movement updates
@@ -200,13 +202,14 @@ class Invisibot:
 
                 # Handle stopping functionality
                 while self._is_stopped:
-                    print("#### ROBOT STOPPED ####")
+                    print("#### ROBOT STOPPED ####", flush=True)
                     time.sleep(5)
                 
                 if is_collision_imminent:
+                    print("#### ROBOT STOPPED DUE TO COLLISION RISK ####", flush=True)
                     break
 
-            print(f"Time elapsed for segment: {time_elapsed_since_start:.2f} seconds")
+            print(f"Time elapsed for segment: {time_elapsed_since_start:.2f} seconds", flush=True)
 
     def _process_movement_tasks(self) -> None:
         """
