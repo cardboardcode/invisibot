@@ -203,7 +203,7 @@ class Invisibot:
                 # Handle stopping functionality
                 while self._is_stopped:
                     print("#### ROBOT STOPPED ####", flush=True)
-                    time.sleep(5)
+                    time.sleep(1)
                 
                 if is_collision_imminent:
                     print("#### ROBOT STOPPED DUE TO COLLISION RISK ####", flush=True)
