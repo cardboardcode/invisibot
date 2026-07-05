@@ -178,9 +178,7 @@ class ApiServer:
             response = {"data": {}, "success": False, "msg": ""}
             response["success"] = True
             selected_ib.stop()
-            print("Freezing all APIs to simulate a connection loss")
-            time.sleep(30)
-            print(f"Stop API called")
+            print(f"Stop API called", flush=True)
             return response
 
         @app.post("/resume", response_model=Response)
