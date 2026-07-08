@@ -35,25 +35,41 @@ class ApiServer:
         self.registry = FleetRegistry()
         for robot_name in robots_data:
 
-            x = robots_data[robot_name]["pose"]["x"]
-            y = robots_data[robot_name]["pose"]["y"]
-            yaw = robots_data[robot_name]["pose"]["yaw"]
-            floor = robots_data[robot_name]["map_name"]
-            
-            robot = Invisibot(
-                self.registry,
-                robot_name,
-                x,
-                y,
-                yaw,
-                floor,
-                )
+            x = robots_data[robot_name]['pose']['x']
+            y = robots_data[robot_name]['pose']['y']
+            yaw = robots_data[robot_name]['pose']['yaw']
+            floor = robots_data[robot_name]['map_name']
+
+            # Check if "path" property is defined.
+            # If true, instantiate robot with path.
+            if "path" in robots_data[robot_name]:
+                robot = Invisibot(
+                    self.registry,
+                    robot_name,
+                    x,
+                    y,
+                    yaw,
+                    floor,
+                    path=robots_data[robot_name]['path']
+                    )
+            else:
+                robot = Invisibot(
+                    self.registry,
+                    robot_name,
+                    x,
+                    y,
+                    yaw,
+                    floor,
+                    )
 
             self.ib_fleet.append(robot)
 
             print(
                 f"Invisibot [ {robot_name} ] spawned @ [ {x}, {y}, {yaw} ] at [ {floor} ]"
             )
+
+            
+
 
         print(
             f"Please access Invisibot Fleet API Server at [ http://localhost:{port}/docs ]"

@@ -4,7 +4,7 @@ import time
 from collections import deque
 from threading import Condition, Lock, Thread
 
-from utils.messages import Request
+from utils.messages import Location, Request
 
 
 class Invisibot:
@@ -21,6 +21,7 @@ class Invisibot:
         y: float = 0.0,
         yaw: float = 0.0,
         floor: str = "L1",
+        path=None,
     ):
         """
         Initializes the Invisibot with its starting position and other parameters.
@@ -36,6 +37,7 @@ class Invisibot:
         self.current_y = y
         self.current_yaw = yaw
         self.floor = floor
+        self.path = path
         self.fleet_registry = fleet_registry
 
         self.target_x = x  # Initialize with current position
@@ -70,6 +72,14 @@ class Invisibot:
             daemon=True,
         )
         self.movement_thread.start()
+
+        if (self.path is not None and len(self.path) == 2):
+            # Start the follow_path thread as a daemon
+            self.path_thread = Thread(
+                target=self._follow_path,
+                daemon=True,
+            )
+            self.path_thread.start()
 
         # Sync the global registry with this new position
         self.fleet_registry.update_pose(
@@ -210,6 +220,50 @@ class Invisibot:
                     break
 
             print(f"Time elapsed for segment: {time_elapsed_since_start:.2f} seconds", flush=True)
+
+    def _follow_path(self) -> None:
+
+        # TODO(cardboardcode): Implement feature to follow multi-segmented path.
+        point_a = self.path[0]
+        point_b = self.path[1]
+
+        is_flipped = True
+        while True:
+            # Check if robot has arrived at point.
+            # Command robot to go point.
+
+            cmd_id = None
+            target_request = Request()
+            target_request.map_name = self.floor
+            if not is_flipped:
+                dest = Location(
+                    x=point_a['x'],
+                    y=point_a['y'],
+                    yaw=point_a['yaw'],
+                    level_name=self.floor,
+                    index=0,
+                )
+                is_flipped=True
+            else:
+                dest = Location(
+                    x=point_b['x'],
+                    y=point_b['y'],
+                    yaw=point_b['yaw'],
+                    level_name=self.floor,
+                    index=0,
+                )
+                is_flipped=False
+
+            target_request.destination = [dest]
+
+            with self.task_condition:
+                self.task_queue.append([cmd_id, target_request])
+                self.task_condition.notify()  # Wake up the movement thread if it's waiting
+
+            print("Waiting all movement tasks to be completed "
+                  "before issuing next movement task...", flush=True)
+            while len(self.task_queue) > 0:
+                time.sleep(1)
 
     def _process_movement_tasks(self) -> None:
         """
