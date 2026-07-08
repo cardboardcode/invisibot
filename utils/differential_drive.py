@@ -160,7 +160,8 @@ class Invisibot:
                 time_elapsed_since_start = time.time() - start_movement_time
 
                 if time_elapsed_since_start >= total_travel_time:
-                    print(f"[INFO] time_elapsed_since_start >= total_travel_time", flush=True)
+                    print(f"[INFO] time_elapsed_since_start[{time_elapsed_since_start}] "
+                          f">= total_travel_time[{total_travel_time}]", flush=True)
                     # Snap to target to ensure exact arrival
                     self.current_x = self.target_x
                     self.current_y = self.target_y
@@ -213,6 +214,8 @@ class Invisibot:
                 # Handle stopping functionality
                 while self._is_stopped:
                     print("#### ROBOT STOPPED ####", flush=True)
+                    # Update estimated total_travel_time to prevent position snap when resuming
+                    start_movement_time = start_movement_time + 1
                     time.sleep(1)
                 
                 if is_collision_imminent:
